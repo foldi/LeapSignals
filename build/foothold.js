@@ -1,6 +1,6 @@
 /*
 Foothold
-Copyright (c) 2012 Your name
+Copyright (c) 2013 Your name
 Your city, state zip, country
 Your email
 Your url
@@ -23,13 +23,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-/* Version: 1.3.0 */
-/* Build time: January 5, 2013 12:55:10 */
-/** @namespace */
+/* Version: 1.4.0 */
+/* Build time: May 18, 2013 12:15:25 *//** @namespace */
 var Foothold = {}, exports = Foothold;
 
 (function(exports) {
-'use strict';
+
+  'use strict';
+
 /*global document, exports */
 /**
  * Creates a new Cat.
@@ -98,4 +99,4 @@ Dog.prototype.speak = function(opt_txt) {
 };
 
 exports.Dog = Dog;
-}(exports));
+}(exports)); // Foothold end.

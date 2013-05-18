@@ -1,0 +1,7 @@
+/** @namespace */
+var Foothold = {}, exports = Foothold;
+
+(function(exports) {
+
+  'use strict';
+

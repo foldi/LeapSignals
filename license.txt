@@ -1,4 +1,4 @@
-Copyright (c) 2012 Your name
+Copyright (c) %YEAR% Your name
 Your city, state zip, country
 Your email
 Your url
