@@ -1,5 +1,5 @@
 /** @namespace */
-var Foothold = {}, exports = Foothold;
+var %BUILDNAME% = {}, exports = %BUILDNAME%;
 
 (function(exports) {
 
