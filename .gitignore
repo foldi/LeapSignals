@@ -1,4 +1,9 @@
 # FOLDERS #
 ###########
 docs/
+lib/
 public/
+
+# FILES #
+#########
+.DS_Store

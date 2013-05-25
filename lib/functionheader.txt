@@ -1,7 +1,0 @@
-/** @namespace */
-var %BUILDNAME% = {}, exports = %BUILDNAME%;
-
-(function(exports) {
-
-  'use strict';
-
