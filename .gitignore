@@ -1,9 +1,7 @@
-# FOLDERS #
-###########
-docs/
-lib/
-public/
+#### FOLDERS ####
+node_modules
+reports
 
-# FILES #
-#########
-.DS_Store
+#### FILES ####
+*.DS_Store
+*.swp
