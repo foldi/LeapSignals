@@ -188,10 +188,10 @@ System._handleFrame = function(frame) {
 
   if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0 && !System.ready) {
     console.log('up');
-    System.ready = !!System.ready;
+    System.ready = !System.ready;
   } else if (frame.hands[0] && frame.hands[0].palmNormal[1] < 0 && System.ready) {
     console.log('down');
-    System.ready = !!System.ready;
+    System.ready = !System.ready;
   }
 
   /*if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0 && !System.ready) {
