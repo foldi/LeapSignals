@@ -1,4 +1,4 @@
-/*! LeapSignals v1.0.0 - 2013-09-30 06:09:03 
+/*! LeapSignals v1.0.0 - 2013-09-30 06:09:52 
  *  Vince Allen 
  *  Brooklyn, NY 
  *  vince@vinceallen.com 
@@ -395,6 +395,13 @@ System.idCount = 0;
 
 System.ready = false;
 
+System.toggle = false;
+
+/**
+ * Holds object pool.
+ * @type {Array}
+ * @private
+ */
 System._pool = [];
 
 /**
@@ -417,7 +424,8 @@ function System() {
  * Initializes the system.
  * @param {Object} opt_iBox Optional properties for the interaction box.
  */
-System.init = function(opt_iBox) {
+System.init = function(opt_iBox, opt_readyCallback, opt_pausedCallback) {
+
   this.viewportSize = exports.Utils.getViewportSize();
   this.iBoxWidth = 600 || iBox.iBoxWidth;
   this.iBoxHeight = 300 || iBox.iBoxHeight;
@@ -442,6 +450,14 @@ System.init = function(opt_iBox) {
   });
   this.controller.on('frame', this._handleFrame.bind(this));
   this.controller.connect();
+
+  if (opt_readyCallback) {
+    System.readyCallback = opt_readyCallback;
+  }
+
+  if (opt_pausedCallback) {
+    System.pausedCallback = opt_pausedCallback;
+  }
 };
 
 System.getId = function() {
@@ -570,10 +586,20 @@ System._handleFrame = function(frame) {
     Finger.color = [100, 100, 100];
   }
 
-  if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0) {
-    console.log('up');
-  } else if (frame.hands[0] && frame.hands[0].palmNormal[1] < 0) {
-    console.log('down');
+  if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0 && !System.toggle) {
+    System.toggle = !System.toggle;
+  } else if (frame.hands[0] && frame.hands[0].palmNormal[1] < 0 && System.toggle) {
+    System.toggle = !System.toggle;
+    System.ready = !System.ready;
+    if (System.ready) {
+      Palm.activeColor();
+      Finger.activeColor();
+      System.readyCallback();
+    } else {
+      Palm.defaultColor();
+      Finger.defaultColor();
+      System.pausedCallback();
+    }
   }
 
   /*if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0 && !System.ready) {
@@ -600,6 +626,14 @@ System._handleFrame = function(frame) {
     }
   }
 
+};
+
+System.readyCallback = function() {
+  console.log('Set System.readyCallback by passing a function as the second argument to System.init().');
+};
+
+System.pausedCallback = function() {
+  console.log('Set System.pausedCallback by passing a function as the third argument to System.init().');
 };
 
 /**
@@ -880,6 +914,20 @@ function Palm(options) {
 }
 Utils.extend(Palm, Item);
 
+Palm.defaultColor = function() {
+  exports.System.updateItemPropsByName('Palm', {
+    color: [0, 0, 0]
+  });
+  Palm.color = [0, 0, 0];
+};
+
+Palm.activeColor = function() {
+  exports.System.updateItemPropsByName('Palm', {
+    color: [200, 50, 0]
+  });
+  Palm.color = [200, 50, 0];
+};
+
 /**
  * Sets required properties and updates DOM element.
  */
@@ -931,6 +979,20 @@ function Finger(options) {
   this.connector = options.connector;
 }
 Utils.extend(Finger, Item);
+
+Finger.defaultColor = function() {
+  exports.System.updateItemPropsByName('Finger', {
+    color: [100, 100, 100]
+  });
+  Finger.color = [100, 100, 100];
+};
+
+Finger.activeColor = function() {
+  exports.System.updateItemPropsByName('Finger', {
+    color: [255, 100, 0]
+  });
+  Finger.color = [255, 100, 0];
+};
 
 Finger.prototype.init = function() {
   this.width = 50;

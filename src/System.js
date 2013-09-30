@@ -6,6 +6,8 @@ System.idCount = 0;
 
 System.ready = false;
 
+System.toggle = false;
+
 /**
  * Holds object pool.
  * @type {Array}
@@ -33,7 +35,8 @@ function System() {
  * Initializes the system.
  * @param {Object} opt_iBox Optional properties for the interaction box.
  */
-System.init = function(opt_iBox) {
+System.init = function(opt_iBox, opt_readyCallback, opt_pausedCallback) {
+
   this.viewportSize = exports.Utils.getViewportSize();
   this.iBoxWidth = 600 || iBox.iBoxWidth;
   this.iBoxHeight = 300 || iBox.iBoxHeight;
@@ -58,6 +61,14 @@ System.init = function(opt_iBox) {
   });
   this.controller.on('frame', this._handleFrame.bind(this));
   this.controller.connect();
+
+  if (opt_readyCallback) {
+    System.readyCallback = opt_readyCallback;
+  }
+
+  if (opt_pausedCallback) {
+    System.pausedCallback = opt_pausedCallback;
+  }
 };
 
 System.getId = function() {
@@ -186,25 +197,21 @@ System._handleFrame = function(frame) {
     Finger.color = [100, 100, 100];
   }
 
-  if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0 && !System.ready) {
-    console.log('up');
+  if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0 && !System.toggle) {
+    System.toggle = !System.toggle;
+  } else if (frame.hands[0] && frame.hands[0].palmNormal[1] < 0 && System.toggle) {
+    System.toggle = !System.toggle;
     System.ready = !System.ready;
-  } else if (frame.hands[0] && frame.hands[0].palmNormal[1] < 0 && System.ready) {
-    console.log('down');
-    System.ready = !System.ready;
+    if (System.ready) {
+      Palm.activeColor();
+      Finger.activeColor();
+      System.readyCallback();
+    } else {
+      Palm.defaultColor();
+      Finger.defaultColor();
+      System.pausedCallback();
+    }
   }
-
-  /*if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0 && !System.ready) {
-    System.ready = true;
-    System.updateItemPropsByName('Palm', {
-      color: [200, 50, 0]
-    });
-    Palm.color = [200, 50, 0];
-    System.updateItemPropsByName('Finger', {
-      color: [255, 100, 0]
-    });
-    Finger.color = [255, 100, 0];
-  }*/
 
   // gestures
   if (frame.gestures.length && System.ready) {
@@ -218,6 +225,14 @@ System._handleFrame = function(frame) {
     }
   }
 
+};
+
+System.readyCallback = function() {
+  console.log('Set System.readyCallback by passing a function as the second argument to System.init().');
+};
+
+System.pausedCallback = function() {
+  console.log('Set System.pausedCallback by passing a function as the third argument to System.init().');
 };
 
 /**

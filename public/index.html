@@ -11,17 +11,25 @@
   </head>
   <body>
     <script type='text/javascript' charset='utf-8'>
-      
+
+      var readyCallback = function() {
+        console.log('ready!');
+      };
+
+      var pausedCallback = function() {
+        console.log('paused');
+      };
+
       var system = LeapSignals.System;
-      system.init();
-      
+      system.init(null, readyCallback, pausedCallback);
+
       /*
       var utils = LeapSignals.Utils;
-      
+
       var viewHand = document.getElementById('viewHand');
-      
+
       var viewportSize = utils.getViewportSize();
-      
+
       var iBoxWidth = 600,
           iBoxHeight = 300,
           iBoxDepth = 200,
@@ -29,16 +37,16 @@
         center: [0, iBoxHeight / 2, 0],
         size: [iBoxWidth, iBoxHeight, iBoxDepth]
       });
-      
+
       var controller = new Leap.Controller();
-      
+
       controller.on('connect', function() {
         console.log("Successfully connected.");
       });
-      
-      
+
+
       controller.on('frame', function(frame) {
-        
+
         if (frame.hands.length) {
           var hand = frame.hands[0];
           var palmPosition = hand.stabilizedPalmPosition;
@@ -51,21 +59,21 @@
               norm[2] < 1 && // z
               norm[2] > 0) {
             // hand is inside interaction box
-            
+
             var x = utils.map(norm[0], 0, 1, 0, viewportSize.width);
             var y = utils.map(norm[1], 0, 1, viewportSize.height, 0);
             var z = norm[2];
             var roll = -utils.radiansToDegrees(hand.roll());
-            
+
             viewHand.style.cssText = utils.getCSSText(x, y, z, roll, 100, 100);
-            
+
             console.log(hand);
           }
         }
       });
-      
+
       controller.connect();*/
-      
+
     </script>
   </body>
 </html>

@@ -10,6 +10,20 @@ function Palm(options) {
 }
 Utils.extend(Palm, Item);
 
+Palm.defaultColor = function() {
+  exports.System.updateItemPropsByName('Palm', {
+    color: [0, 0, 0]
+  });
+  Palm.color = [0, 0, 0];
+};
+
+Palm.activeColor = function() {
+  exports.System.updateItemPropsByName('Palm', {
+    color: [200, 50, 0]
+  });
+  Palm.color = [200, 50, 0];
+};
+
 /**
  * Sets required properties and updates DOM element.
  */

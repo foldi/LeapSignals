@@ -11,6 +11,20 @@ function Finger(options) {
 }
 Utils.extend(Finger, Item);
 
+Finger.defaultColor = function() {
+  exports.System.updateItemPropsByName('Finger', {
+    color: [100, 100, 100]
+  });
+  Finger.color = [100, 100, 100];
+};
+
+Finger.activeColor = function() {
+  exports.System.updateItemPropsByName('Finger', {
+    color: [255, 100, 0]
+  });
+  Finger.color = [255, 100, 0];
+};
+
 Finger.prototype.init = function() {
   this.width = 50;
   this.height = 50;
