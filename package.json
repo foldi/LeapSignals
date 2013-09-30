@@ -1,7 +1,7 @@
 {
-  "name": "Foothold",
+  "name": "LeapSignals",
   "version": "1.0.0",
-  "description": "A Grunt project template.",
+  "description": "A Leap Motion project.",
   "main": "src/main.js",
   "scripts": {
     "test": "grunt test"

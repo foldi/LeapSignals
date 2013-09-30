@@ -74,7 +74,15 @@ module.exports = function(grunt) {
         }
       },
       target: {
-        src: ['src/*.js'],
+        src: [
+          'src/Utils.js',
+          'src/Vector.js',
+          'src/System.js',
+          'src/Connector.js',
+          'src/Item.js',
+          'src/Palm.js',
+          'src/Finger.js'
+        ],
         dest: 'release/' + latest + '.js'
       }
     },
