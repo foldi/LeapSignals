@@ -6,7 +6,12 @@ System.idCount = 0;
 
 System.ready = false;
 
-System.pool = [];
+/**
+ * Holds object pool.
+ * @type {Array}
+ * @private
+ */
+System._pool = [];
 
 /**
  * Creates a new System.
@@ -40,16 +45,16 @@ System.init = function(opt_iBox) {
 
   this.controller = new Leap.Controller({enableGestures: true});
   this.controller.on('connect', function() {
-    console.log("LEAP: The client is connected to the websocket server.");
+    console.log('LEAP: The client is connected to the websocket server.');
   });
   this.controller.on('ready', function() {
-    console.log("LEAP: The protocol has been selected.");
+    console.log('LEAP: The protocol has been selected.');
   });
   this.controller.on('deviceConnected', function() {
-    console.log("LEAP: A Leap device has been connected.");
+    console.log('LEAP: A Leap device has been connected.');
   });
   this.controller.on('deviceDisconnected', function() {
-    console.log("LEAP: A Leap device has been disconnected.");
+    console.log('LEAP: A Leap device has been disconnected.');
   });
   this.controller.on('frame', this._handleFrame.bind(this));
   this.controller.connect();
@@ -73,12 +78,12 @@ System.add = function(klass, opt_options) {
       records = System._records.list,
       i, max, item, pool;
 
-  pool = this.getAllItemsByName(klass, System.pool);
+  pool = this.getAllItemsByName(klass, System._pool);
 
   if (pool.length) {
-    for (i = 0, max = System.pool.length; i < max; i++) {
-      if (System.pool[i].name === klass) {
-        item = System.pool.splice(i, 1)[0];
+    for (i = 0, max = System._pool.length; i < max; i++) {
+      if (System._pool[i].name === klass) {
+        item = System._pool.splice(i, 1)[0];
         break;
       }
     }
@@ -99,39 +104,29 @@ System.add = function(klass, opt_options) {
  */
 System._handleFrame = function(frame) {
 
-  var i, max, j, max_j, palm, finger;
+  var i, max_i, j, max_j, palm, finger;
 
   if (frame.hands.length) {
 
-    for (i = 0, max = frame.hands.length; i < max; i++) { // loop thru hands in frame
-      palm = System.getAllItemsByAttribute('handId', frame.hands[i].id)[0]; // check if we have a hand w hand[i].id
+    // we're current only looking for 1 hand and 5 fingers
+    var hand = frame.hands[0]; // frame.hands[i]
+
+    //for (i = 0, max_i = frame.hands.length; i < max_i; i++) { // loop thru hands in frame
+      palm = System.getAllItemsByAttribute('handId', hand.id)[0]; // check if we have a hand w hand[i].id
       if (!palm) { // if no, create one
-        /*palm = new exports.Palm({
-          frameId: frame.id,
-          handId: frame.hands[i].id,
-        });
-        palm.init();
-        System._records.list.push(palm);*/
         System.add('Palm', {
           frameId: frame.id,
-          handId: frame.hands[i].id
+          handId: hand.id
         });
       } else { // if yes, update props
-        palm.step(frame.id, frame.hands[i]);
+        palm.step(frame.id, hand);
       }
-    }
+    //}
 
-    for (i = 0, max = frame.fingers.length; i < max; i++) { // loop thru fingers in frame
-      // check if we have a finger w finger[i].id
-      finger = System.getAllItemsByAttribute('fingerId', frame.fingers[i].id)[0];
+    // only looking for 5 fingers
+    for (i = 0, max_i = exports.Utils.constrain(frame.fingers.length, 0, 5); i < max_i; i++) { // loop thru fingers in frame
+      finger = System.getAllItemsByAttribute('fingerId', frame.fingers[i].id)[0]; // check if we have a finger w finger[i].id
       if (!finger) { // if no, create one
-        /*finger = new exports.Finger({
-          frameId: frame.id,
-          handId: frame.fingers[i].handId,
-          fingerId: frame.fingers[i].id
-        });
-        finger.init();
-        System._records.list.push(finger);*/
         System.add('Finger', {
           frameId: frame.id,
           handId: frame.fingers[i].handId,
@@ -146,23 +141,13 @@ System._handleFrame = function(frame) {
     var palms = System.getAllItemsByName('Palm'),
         fingers = System.getAllItemsByName('Finger');
 
-    for (i = 0, max = palms.length; i < max; i++) {
+    for (i = 0, max_i = palms.length; i < max_i; i++) {
       for (j = 0, max_j = fingers.length; j < max_j; j++) {
+
         if (fingers[j].handId === palms[i].handId) {
 
           var connector = System.getAllItemsByAttribute('connectorId', fingers[j].fingerId)[0];
           if (!connector) { // if no, create one
-            /*connector = new exports.Connector({
-              frameId: frame.id,
-              fingerId: fingers[j].fingerId,
-            });
-            connector.init({
-              frameId: frame.id,
-              connectorId: fingers[j].fingerId,
-              parentA: fingers[j],
-              parentB: palms[i]
-            });
-            System._records.list.push(connector);*/
             System.add('Connector', {
               frameId: frame.id,
               fingerId: fingers[j].fingerId,
@@ -176,13 +161,11 @@ System._handleFrame = function(frame) {
         }
       }
     }
-    // loop thru all fingers
-
 
     // get all items wout an updated frame id
     var toRemove = System.getAllItemsWithoutAttribute('frameId', frame.id);
 
-    for (i = 0, max = toRemove.length; i < max; i++) {
+    for (i = 0, max_i = toRemove.length; i < max_i; i++) {
       System.destroyItem(toRemove[i]);
     }
 
@@ -203,8 +186,13 @@ System._handleFrame = function(frame) {
     Finger.color = [100, 100, 100];
   }
 
+  if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0) {
+    console.log('up');
+  } else if (frame.hands[0] && frame.hands[0].palmNormal[1] < 0) {
+    console.log('down');
+  }
 
-  if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0 && !System.ready) {
+  /*if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0 && !System.ready) {
     System.ready = true;
     System.updateItemPropsByName('Palm', {
       color: [200, 50, 0]
@@ -214,7 +202,7 @@ System._handleFrame = function(frame) {
       color: [255, 100, 0]
     });
     Finger.color = [255, 100, 0];
-  }
+  }*/
 
   // gestures
   if (frame.gestures.length && System.ready) {
@@ -243,12 +231,10 @@ System.destroyItem = function (obj) {
 
   for (i = 0, max = records.length; i < max; i++) {
     if (records[i].id === obj.id) {
-      //records[i].el.parentNode.removeChild(records[i].el); // remove record el
-      //records.splice(i, 1); // remove record
       records[i].el.style.visibility = 'hidden'; // hide item
       records[i].el.style.display = 'none';
       records[i].el.style.opacity = 0;
-      System.pool[System.pool.length] = records.splice(i, 1)[0]; // move record to pool array
+      System._pool[System._pool.length] = records.splice(i, 1)[0]; // move record to pool array
       break;
     }
   }

@@ -1,4 +1,4 @@
-/*! LeapSignals v1.0.0 - 2013-09-30 06:09:09 
+/*! LeapSignals v1.0.0 - 2013-09-30 06:09:03 
  *  Vince Allen 
  *  Brooklyn, NY 
  *  vince@vinceallen.com 
@@ -92,6 +92,25 @@ Utils.radiansToDegrees = function(radians) {
 };
 
 /**
+ * Constrain a value within a range.
+ *
+ * @function constrain
+ * @memberof Utils
+ * @param {number} val The value to constrain.
+ * @param {number} low The lower bound of the range.
+ * @param {number} high The upper bound of the range.
+ * @returns {number} A number.
+ */
+Utils.constrain = function(val, low, high) {
+  if (val > high) {
+    return high;
+  } else if (val < low) {
+    return low;
+  }
+  return val;
+};
+
+/**
  * Concatenates a new cssText string.
  *
  * @function getCSSText
@@ -100,7 +119,7 @@ Utils.radiansToDegrees = function(radians) {
  * @returns {string} A string representing cssText.
  */
 Utils.getCSSText = function(props) {
-  
+
   var trans = 'transform: translate3d(<x>px, <y>px, 0) rotate(<angle>deg) scale(<scale>, <scale>); ' +
       '-webkit-transform: translate3d(<x>px, <y>px, 0) rotate(<angle>deg) scale(<scale>, <scale>); ' +
       '-moz-transform: translate3d(<x>px, <y>px, 0) rotate(<angle>deg) scale(<scale>, <scale>); ' +
@@ -376,7 +395,7 @@ System.idCount = 0;
 
 System.ready = false;
 
-System.pool = [];
+System._pool = [];
 
 /**
  * Creates a new System.
@@ -407,20 +426,20 @@ System.init = function(opt_iBox) {
     center: [0, this.iBoxHeight / 2, 0],
     size: [this.iBoxWidth, this.iBoxHeight, this.iBoxDepth]
   });
-  
+
   this.controller = new Leap.Controller({enableGestures: true});
   this.controller.on('connect', function() {
-    console.log("LEAP: The client is connected to the websocket server.");
+    console.log('LEAP: The client is connected to the websocket server.');
   });
   this.controller.on('ready', function() {
-    console.log("LEAP: The protocol has been selected.");
+    console.log('LEAP: The protocol has been selected.');
   });
   this.controller.on('deviceConnected', function() {
-    console.log("LEAP: A Leap device has been connected.");
-  }); 
+    console.log('LEAP: A Leap device has been connected.');
+  });
   this.controller.on('deviceDisconnected', function() {
-    console.log("LEAP: A Leap device has been disconnected.");
-  });       
+    console.log('LEAP: A Leap device has been disconnected.');
+  });
   this.controller.on('frame', this._handleFrame.bind(this));
   this.controller.connect();
 };
@@ -443,15 +462,15 @@ System.add = function(klass, opt_options) {
       records = System._records.list,
       i, max, item, pool;
 
-  pool = this.getAllItemsByName(klass, System.pool);
+  pool = this.getAllItemsByName(klass, System._pool);
 
   if (pool.length) {
-    for (i = 0, max = System.pool.length; i < max; i++) {
-      if (System.pool[i].name === klass) {
-        item = System.pool.splice(i, 1)[0];
+    for (i = 0, max = System._pool.length; i < max; i++) {
+      if (System._pool[i].name === klass) {
+        item = System._pool.splice(i, 1)[0];
         break;
       }
-    }    
+    }
   } else {
     item = new exports[klass](options);
   }
@@ -467,104 +486,82 @@ System.add = function(klass, opt_options) {
  * Handles Leap controller's animationFrame event.
  * @private
  */
-System._handleFrame = function(frame) {  
+System._handleFrame = function(frame) {
 
-  var i, max, palm, finger;
+  var i, max_i, j, max_j, palm, finger;
 
   if (frame.hands.length) {
-      
-    for (i = 0, max = frame.hands.length; i < max; i++) { // loop thru hands in frame
-      palm = System.getAllItemsByAttribute('handId', frame.hands[i].id)[0]; // check if we have a hand w hand[i].id
+
+    // we're current only looking for 1 hand and 5 fingers
+    var hand = frame.hands[0]; // frame.hands[i]
+
+    //for (i = 0, max_i = frame.hands.length; i < max_i; i++) { // loop thru hands in frame
+      palm = System.getAllItemsByAttribute('handId', hand.id)[0]; // check if we have a hand w hand[i].id
       if (!palm) { // if no, create one
-        /*palm = new exports.Palm({
-          frameId: frame.id,
-          handId: frame.hands[i].id,
-        });
-        palm.init();
-        System._records.list.push(palm);*/
         System.add('Palm', {
           frameId: frame.id,
-          handId: frame.hands[i].id
+          handId: hand.id
         });
-      } else { // if yes, update props 
-        palm.step(frame.id, frame.hands[i]);
+      } else { // if yes, update props
+        palm.step(frame.id, hand);
       }
-    }
-    
-    for (i = 0, max = frame.fingers.length; i < max; i++) { // loop thru fingers in frame
-      // check if we have a finger w finger[i].id
-      finger = System.getAllItemsByAttribute('fingerId', frame.fingers[i].id)[0];
+    //}
+
+    // only looking for 5 fingers
+    for (i = 0, max_i = exports.Utils.constrain(frame.fingers.length, 0, 5); i < max_i; i++) { // loop thru fingers in frame
+      finger = System.getAllItemsByAttribute('fingerId', frame.fingers[i].id)[0]; // check if we have a finger w finger[i].id
       if (!finger) { // if no, create one
-        /*finger = new exports.Finger({
-          frameId: frame.id,
-          handId: frame.fingers[i].handId,
-          fingerId: frame.fingers[i].id
-        });
-        finger.init();
-        System._records.list.push(finger);*/
         System.add('Finger', {
           frameId: frame.id,
           handId: frame.fingers[i].handId,
           fingerId: frame.fingers[i].id
-        });        
-      } else { // if yes, update props 
+        });
+      } else { // if yes, update props
         finger.step(frame.id, frame.fingers[i]);
-      }      
+      }
     }
-    
+
     // to create connectors, loop thru all palms and fingers
     var palms = System.getAllItemsByName('Palm'),
         fingers = System.getAllItemsByName('Finger');
 
-    for (var i = 0, max = palms.length; i < max; i++) {
-      for (var j = 0, max_j = fingers.length; j < max_j; j++) {
+    for (i = 0, max_i = palms.length; i < max_i; i++) {
+      for (j = 0, max_j = fingers.length; j < max_j; j++) {
+
         if (fingers[j].handId === palms[i].handId) {
-          
+
           var connector = System.getAllItemsByAttribute('connectorId', fingers[j].fingerId)[0];
           if (!connector) { // if no, create one
-            /*connector = new exports.Connector({
-              frameId: frame.id,
-              fingerId: fingers[j].fingerId,
-            });
-            connector.init({
-              frameId: frame.id,
-              connectorId: fingers[j].fingerId,
-              parentA: fingers[j],
-              parentB: palms[i]
-            });
-            System._records.list.push(connector);*/
             System.add('Connector', {
               frameId: frame.id,
               fingerId: fingers[j].fingerId,
               connectorId: fingers[j].fingerId,
               parentA: fingers[j],
-              parentB: palms[i]              
-            });             
-          } else { // if yes, update props 
+              parentB: palms[i]
+            });
+          } else { // if yes, update props
             connector.step(frame.id);
           }
         }
       }
     }
-    // loop thru all fingers
-    
 
     // get all items wout an updated frame id
     var toRemove = System.getAllItemsWithoutAttribute('frameId', frame.id);
-    
-    for (i = 0, max = toRemove.length; i < max; i++) {
+
+    for (i = 0, max_i = toRemove.length; i < max_i; i++) {
       System.destroyItem(toRemove[i]);
     }
-  
+
     // draw
-    for (var i= System._records.list.length - 1; i >=0 ; i--) {
+    for (i = System._records.list.length - 1; i >=0 ; i--) {
       System._records.list[i].draw();
     }
-    
+
   } else {
     // remove all items
     if (System._records.list.length) {
-      for (var i= System._records.list.length - 1; i >=0 ; i--) {
+      for (i = System._records.list.length - 1; i >=0 ; i--) {
         System.destroyItem(System._records.list[i]);
       }
     }
@@ -572,20 +569,25 @@ System._handleFrame = function(frame) {
     Palm.color = [0, 0, 0];
     Finger.color = [100, 100, 100];
   }
-  
 
-  if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0 && !System.ready) {
+  if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0) {
+    console.log('up');
+  } else if (frame.hands[0] && frame.hands[0].palmNormal[1] < 0) {
+    console.log('down');
+  }
+
+  /*if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0 && !System.ready) {
     System.ready = true;
     System.updateItemPropsByName('Palm', {
       color: [200, 50, 0]
     });
-    Palm.color = [200, 50, 0];    
+    Palm.color = [200, 50, 0];
     System.updateItemPropsByName('Finger', {
       color: [255, 100, 0]
     });
     Finger.color = [255, 100, 0];
-  }
-  
+  }*/
+
   // gestures
   if (frame.gestures.length && System.ready) {
     var gesture = frame.gestures[0];
@@ -597,7 +599,7 @@ System._handleFrame = function(frame) {
       }
     }
   }
-  
+
 };
 
 /**
@@ -613,12 +615,10 @@ System.destroyItem = function (obj) {
 
   for (i = 0, max = records.length; i < max; i++) {
     if (records[i].id === obj.id) {
-      //records[i].el.parentNode.removeChild(records[i].el); // remove record el
-      //records.splice(i, 1); // remove record
       records[i].el.style.visibility = 'hidden'; // hide item
       records[i].el.style.display = 'none';
       records[i].el.style.opacity = 0;
-      System.pool[System.pool.length] = records.splice(i, 1)[0]; // move record to pool array
+      System._pool[System._pool.length] = records.splice(i, 1)[0]; // move record to pool array
       break;
     }
   }
@@ -767,10 +767,9 @@ Connector.prototype.init = function(options) {
   this.borderStyle = 'dotted';
   this.borderColor = typeof options.borderColor === 'undefined' ? [150, 150, 150] : options.borderColor;
   this.color = 'transparent';
-  this.zIndex = options.zIndex || 5; 
+  this.zIndex = options.zIndex || 5;
   this.visibility = 'hidden';
-  this.el.classList.add(this.name.toLowerCase());  
-  //document.body.appendChild(this.el);
+  this.el.classList.add(this.name.toLowerCase());
 };
 
 /**
@@ -835,7 +834,7 @@ Item.prototype.reset = function(opt_options) {
   this.borderRadius = typeof options.borderRadius === 'undefined' ? 100 : options.borderRadius;
   this.borderWidth = options.borderWidth || 0;
   this.borderStyle = options.borderStyle || 'none';
-  this.zIndex = typeof options.zIndex === 'undefined' ? 1 : options.zIndex;  
+  this.zIndex = typeof options.zIndex === 'undefined' ? 1 : options.zIndex;
   this.visibility = options.visibility || 'visible';
 };
 
@@ -876,7 +875,7 @@ Palm.color = [0, 0, 0];
  * @constructor
  */
 function Palm(options) {
-  Item.call(this, options);  
+  Item.call(this, options);
   this.name = 'Palm';
 }
 Utils.extend(Palm, Item);
@@ -891,7 +890,7 @@ Palm.prototype.init = function() {
   this.zIndex = 10;
   this.visibility = 'hidden';
   this.el.classList.add(this.name.toLowerCase());
-}
+};
 
 /**
  * Updates palm properties.
@@ -910,7 +909,7 @@ Palm.prototype.step = function(frameId, hand) {
       norm[2] < 1 && // z
       norm[2] > 0) {
     // hand is inside interaction box
-    
+
     this.location.x = exports.Utils.map(norm[0], 0, 1, 0, System.viewportSize.width);
     this.location.y = exports.Utils.map(norm[1], 0, 1, System.viewportSize.height, 0);
     this.scale = norm[2];
@@ -939,7 +938,7 @@ Finger.prototype.init = function() {
   this.color = Finger.color;
   this.zIndex = 1;
   this.visibility = 'hidden';
-  this.el.classList.add(this.name.toLowerCase());  
+  this.el.classList.add(this.name.toLowerCase());
 };
 
 /**
@@ -959,7 +958,7 @@ Finger.prototype.step = function(frameId, finger) {
       norm[2] < 1 && // z
       norm[2] > 0) {
     // finger is inside interaction box
-    
+
     this.location.x = exports.Utils.map(norm[0], 0, 1, 0, System.viewportSize.width);
     this.location.y = exports.Utils.map(norm[1], 0, 1, System.viewportSize.height, 0);
     this.scale = norm[2];
