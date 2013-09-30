@@ -186,10 +186,12 @@ System._handleFrame = function(frame) {
     Finger.color = [100, 100, 100];
   }
 
-  if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0) {
+  if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0 && !System.ready) {
     console.log('up');
-  } else if (frame.hands[0] && frame.hands[0].palmNormal[1] < 0) {
+    System.ready = !!System.ready;
+  } else if (frame.hands[0] && frame.hands[0].palmNormal[1] < 0 && System.ready) {
     console.log('down');
+    System.ready = !!System.ready;
   }
 
   /*if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0 && !System.ready) {
