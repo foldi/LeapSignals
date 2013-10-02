@@ -1,4 +1,31 @@
-System._records = {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: System.js</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+    
+    <h1 class="page-title">Source: System.js</h1>
+    
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source"><code>System._records = {
   list: []
 };
 
@@ -17,8 +44,6 @@ System.gestureCallbacks = {
     }
   }
 };
-
-System.rollCallback = function() {};
 
 /**
  * Holds object pool.
@@ -47,7 +72,7 @@ function System() {
  * Initializes the system.
  * @param {Object} opt_iBox Optional properties for the interaction box.
  */
-System.init = function(opt_iBox, opt_readyCallback, opt_pausedCallback, opt_gestureCallbacks, opt_rollCallback) {
+System.init = function(opt_iBox, opt_readyCallback, opt_pausedCallback, opt_gestureCallbacks) {
 
   this.viewportSize = exports.Utils.getViewportSize();
   this.iBoxWidth = 800 || iBox.iBoxWidth;
@@ -85,10 +110,6 @@ System.init = function(opt_iBox, opt_readyCallback, opt_pausedCallback, opt_gest
   if (opt_gestureCallbacks) {
     System.gestureCallbacks = opt_gestureCallbacks;
   }
-
-  if (opt_rollCallback) {
-    System.rollCallback = opt_rollCallback;
-  }
 };
 
 System.getId = function() {
@@ -112,7 +133,7 @@ System.add = function(klass, opt_options) {
   pool = this.getAllItemsByName(klass, System._pool);
 
   if (pool.length) {
-    for (i = 0, max = System._pool.length; i < max; i++) {
+    for (i = 0, max = System._pool.length; i &lt; max; i++) {
       if (System._pool[i].name === klass) {
         item = System._pool.splice(i, 1)[0];
         break;
@@ -142,7 +163,7 @@ System._handleFrame = function(frame) {
     // we're current only looking for 1 hand and 5 fingers
     var hand = frame.hands[0]; // frame.hands[i]
 
-    //for (i = 0, max_i = frame.hands.length; i < max_i; i++) { // loop thru hands in frame
+    //for (i = 0, max_i = frame.hands.length; i &lt; max_i; i++) { // loop thru hands in frame
       palm = System.getAllItemsByAttribute('handId', hand.id)[0]; // check if we have a hand w hand[i].id
       if (!palm) { // if no, create one
         System.add('Palm', {
@@ -156,7 +177,7 @@ System._handleFrame = function(frame) {
     //}
 
     // only looking for 5 fingers
-    for (i = 0, max_i = exports.Utils.constrain(frame.fingers.length, 0, 5); i < max_i; i++) { // loop thru fingers in frame
+    for (i = 0, max_i = exports.Utils.constrain(frame.fingers.length, 0, 5); i &lt; max_i; i++) { // loop thru fingers in frame
       finger = System.getAllItemsByAttribute('fingerId', frame.fingers[i].id)[0]; // check if we have a finger w finger[i].id
       if (!finger) { // if no, create one
         System.add('Finger', {
@@ -173,8 +194,8 @@ System._handleFrame = function(frame) {
     var palms = System.getAllItemsByName('Palm'),
         fingers = System.getAllItemsByName('Finger');
 
-    for (i = 0, max_i = palms.length; i < max_i; i++) {
-      for (j = 0, max_j = fingers.length; j < max_j; j++) {
+    for (i = 0, max_i = palms.length; i &lt; max_i; i++) {
+      for (j = 0, max_j = fingers.length; j &lt; max_j; j++) {
 
         if (fingers[j].handId === palms[i].handId) {
 
@@ -197,7 +218,7 @@ System._handleFrame = function(frame) {
     // get all items wout an updated frame id
     var toRemove = System.getAllItemsWithoutAttribute('frameId', frame.id);
 
-    for (i = 0, max_i = toRemove.length; i < max_i; i++) {
+    for (i = 0, max_i = toRemove.length; i &lt; max_i; i++) {
       System.destroyItem(toRemove[i]);
     }
 
@@ -220,7 +241,7 @@ System._handleFrame = function(frame) {
 
   if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0.5 && !System.toggle) {
     System.toggle = true;
-  } else if (frame.hands[0] && frame.hands[0].palmNormal[1] < -0.5 && System.toggle) {
+  } else if (frame.hands[0] && frame.hands[0].palmNormal[1] &lt; -0.5 && System.toggle) {
     System.toggle = false;
     System.ready = !System.ready;
     if (System.ready) {
@@ -232,10 +253,6 @@ System._handleFrame = function(frame) {
       Finger.defaultColor();
       System.pausedCallback();
     }
-  }
-
-  if (frame.hands[0]) {
-    System.rollCallback.call(this, frame.hands[0].roll());
   }
 
   // gestures
@@ -267,7 +284,7 @@ System.destroyItem = function (obj) {
 
   var i, max, records = this._records.list;
 
-  for (i = 0, max = records.length; i < max; i++) {
+  for (i = 0, max = records.length; i &lt; max; i++) {
     if (records[i].id === obj.id) {
       records[i].el.style.visibility = 'hidden'; // hide item
       records[i].el.style.display = 'none';
@@ -292,7 +309,7 @@ System.getAllItemsByName = function(name, opt_list) {
   var i, max, arr = [],
       list = opt_list || this._records.list;
 
-  for (i = 0, max = list.length; i < max; i++) {
+  for (i = 0, max = list.length; i &lt; max; i++) {
     if (list[i].name === name) {
       arr[arr.length] = list[i];
     }
@@ -315,7 +332,7 @@ System.getAllItemsByAttribute = function(attr, opt_val) {
   var i, max, arr = [], records = this._records.list,
       val = typeof opt_val !== 'undefined' ? opt_val : null;
 
-  for (i = 0, max = records.length; i < max; i++) {
+  for (i = 0, max = records.length; i &lt; max; i++) {
     if (typeof records[i][attr] !== 'undefined') {
       if (val !== null && records[i][attr] !== val) {
         continue;
@@ -341,7 +358,7 @@ System.getAllItemsWithoutAttribute = function(attr, opt_val) {
   var i, max, arr = [], records = this._records.list,
       val = typeof opt_val !== 'undefined' ? opt_val : null;
 
-  for (i = 0, max = records.length; i < max; i++) {
+  for (i = 0, max = records.length; i &lt; max; i++) {
     if (typeof records[i][attr] === 'undefined' || records[i][attr] !== val) {
       arr[arr.length] = records[i];
     }
@@ -367,7 +384,7 @@ System.updateItemPropsByName = function(name, props) {
 
   var i, max, p, arr = this.getAllItemsByName(name);
 
-  for (i = 0, max = arr.length; i < max; i++) {
+  for (i = 0, max = arr.length; i &lt; max; i++) {
     for (p in props) {
       if (props.hasOwnProperty(p)) {
         arr[i][p] = props[p];
@@ -375,4 +392,26 @@ System.updateItemPropsByName = function(name, props) {
     }
   }
   return arr;
-};
+};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="Connector.html">Connector</a></li><li><a href="Finger.html">Finger</a></li><li><a href="Item.html">Item</a></li><li><a href="Palm.html">Palm</a></li><li><a href="Vector.html">Vector</a></li></ul><h3>Namespaces</h3><ul><li><a href="Utils.html">Utils</a></li></ul><h3>Global</h3><ul><li><a href="global.html#System">System</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0</a> on Wed Oct 02 2013 13:03:22 GMT-0400 (EDT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

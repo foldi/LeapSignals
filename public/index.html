@@ -6,73 +6,63 @@
   <meta name='apple-mobile-web-app-capable' content='yes' />
   <title>Leap Signals</title>
   <link href='css/LeapSignals.min.css' rel='stylesheet' type='text/css' charset='utf-8' />
+  <link href='css/feedback.css' rel='stylesheet' type='text/css' charset='utf-8' />
   <script src='scripts/leap.js' type='text/javascript' charset='utf-8'></script>
   <script src='scripts/LeapSignals.min.js' type='text/javascript' charset='utf-8'></script>
   </head>
   <body>
+    <div id='feedback' class='feedback'></div>
+    <div id='gesture' class='feedback gesture'></div>
     <script type='text/javascript' charset='utf-8'>
 
+      var readyTimeout = null,
+          lockedTimeout = null,
+          gestureFeedbackTimeout = null;
+
       var readyCallback = function() {
-        console.log('ready!');
+        var ready = document.getElementById('feedback');
+        ready.classList.add('active');
+        ready.textContent = 'READY';
+        clearTimeout(readyTimeout);
+        readyTimeout = setTimeout(function() {
+          ready.classList.remove('active');
+        } , 1000);
       };
 
       var pausedCallback = function() {
-        console.log('paused');
+        var locked = document.getElementById('feedback');
+        locked.classList.add('active');
+        locked.textContent = 'LOCKED';
+        clearTimeout(lockedTimeout);
+        lockedTimeout = setTimeout(function() {
+          locked.classList.remove('active');
+        } , 1000);
+      };
+
+      var gestureFeedback  = function(direction) {
+        var gesture = document.getElementById('gesture');
+        gesture.classList.add('active');
+        gesture.textContent = direction;
+        clearTimeout(gestureFeedbackTimeout);
+        gestureFeedbackTimeout = setTimeout(function() {
+          gesture.classList.remove('active');
+        } , 1000);
+      };
+
+      var rollCallback = function(angle) {
+        var angle = LeapSignals.Utils.radiansToDegrees(angle);
       };
 
       var system = LeapSignals.System;
-      system.init(null, readyCallback, pausedCallback);
-
-      /*
-      var utils = LeapSignals.Utils;
-
-      var viewHand = document.getElementById('viewHand');
-
-      var viewportSize = utils.getViewportSize();
-
-      var iBoxWidth = 600,
-          iBoxHeight = 300,
-          iBoxDepth = 200,
-          interactionBox = new Leap.InteractionBox({
-        center: [0, iBoxHeight / 2, 0],
-        size: [iBoxWidth, iBoxHeight, iBoxDepth]
-      });
-
-      var controller = new Leap.Controller();
-
-      controller.on('connect', function() {
-        console.log("Successfully connected.");
-      });
-
-
-      controller.on('frame', function(frame) {
-
-        if (frame.hands.length) {
-          var hand = frame.hands[0];
-          var palmPosition = hand.stabilizedPalmPosition;
-          var norm = interactionBox.normalizePoint(palmPosition, false);
-          if (hand.valid &&
-              norm[0] < 1 && // x
-              norm[0] > 0 &&
-              norm[1] < 1 && // y
-              norm[1] > 0 &&
-              norm[2] < 1 && // z
-              norm[2] > 0) {
-            // hand is inside interaction box
-
-            var x = utils.map(norm[0], 0, 1, 0, viewportSize.width);
-            var y = utils.map(norm[1], 0, 1, viewportSize.height, 0);
-            var z = norm[2];
-            var roll = -utils.radiansToDegrees(hand.roll());
-
-            viewHand.style.cssText = utils.getCSSText(x, y, z, roll, 100, 100);
-
-            console.log(hand);
-          }
+      system.init({
+        iBoxWidth: 800,
+        iBoxHeight: 300,
+        iBoxDepth: 300
+      }, readyCallback, pausedCallback, {
+        swipe: function(gesture) {
+          var direction = gesture.direction[0] > 0 ? gestureFeedback('right') : gestureFeedback('left');
         }
-      });
-
-      controller.connect();*/
+      }, rollCallback);
 
     </script>
   </body>

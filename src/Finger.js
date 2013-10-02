@@ -9,7 +9,7 @@ function Finger(options) {
   this.name = 'Finger';
   this.connector = options.connector;
 }
-Utils.extend(Finger, Item);
+exports.Utils.extend(Finger, Item);
 
 Finger.defaultColor = function() {
   exports.System.updateItemPropsByName('Finger', {

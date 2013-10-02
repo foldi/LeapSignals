@@ -1,4 +1,4 @@
-/*! LeapSignals v1.0.0 - 2013-09-30 06:09:52 
+/*! LeapSignals v1.0.0 - 2013-10-02 04:10:01 
  *  Vince Allen 
  *  Brooklyn, NY 
  *  vince@vinceallen.com 
@@ -397,6 +397,18 @@ System.ready = false;
 
 System.toggle = false;
 
+System.gestureCallbacks = {
+  swipe: function(gesture) {
+    if (gesture.direction[0] > 0) {
+      console.log('right');
+    } else {
+      console.log('left');
+    }
+  }
+};
+
+System.rollCallback = function() {};
+
 /**
  * Holds object pool.
  * @type {Array}
@@ -424,10 +436,10 @@ function System() {
  * Initializes the system.
  * @param {Object} opt_iBox Optional properties for the interaction box.
  */
-System.init = function(opt_iBox, opt_readyCallback, opt_pausedCallback) {
+System.init = function(opt_iBox, opt_readyCallback, opt_pausedCallback, opt_gestureCallbacks, opt_rollCallback) {
 
   this.viewportSize = exports.Utils.getViewportSize();
-  this.iBoxWidth = 600 || iBox.iBoxWidth;
+  this.iBoxWidth = 800 || iBox.iBoxWidth;
   this.iBoxHeight = 300 || iBox.iBoxHeight;
   this.iBoxDepth = 300 || iBox.iBoxDepth;
   this.interactionBox = new Leap.InteractionBox({
@@ -457,6 +469,14 @@ System.init = function(opt_iBox, opt_readyCallback, opt_pausedCallback) {
 
   if (opt_pausedCallback) {
     System.pausedCallback = opt_pausedCallback;
+  }
+
+  if (opt_gestureCallbacks) {
+    System.gestureCallbacks = opt_gestureCallbacks;
+  }
+
+  if (opt_rollCallback) {
+    System.rollCallback = opt_rollCallback;
   }
 };
 
@@ -518,6 +538,7 @@ System._handleFrame = function(frame) {
           frameId: frame.id,
           handId: hand.id
         });
+        System.toggle = false;
       } else { // if yes, update props
         palm.step(frame.id, hand);
       }
@@ -586,10 +607,10 @@ System._handleFrame = function(frame) {
     Finger.color = [100, 100, 100];
   }
 
-  if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0 && !System.toggle) {
-    System.toggle = !System.toggle;
-  } else if (frame.hands[0] && frame.hands[0].palmNormal[1] < 0 && System.toggle) {
-    System.toggle = !System.toggle;
+  if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0.5 && !System.toggle) {
+    System.toggle = true;
+  } else if (frame.hands[0] && frame.hands[0].palmNormal[1] < -0.5 && System.toggle) {
+    System.toggle = false;
     System.ready = !System.ready;
     if (System.ready) {
       Palm.activeColor();
@@ -602,27 +623,15 @@ System._handleFrame = function(frame) {
     }
   }
 
-  /*if (frame.hands[0] && frame.hands[0].palmNormal[1] > 0 && !System.ready) {
-    System.ready = true;
-    System.updateItemPropsByName('Palm', {
-      color: [200, 50, 0]
-    });
-    Palm.color = [200, 50, 0];
-    System.updateItemPropsByName('Finger', {
-      color: [255, 100, 0]
-    });
-    Finger.color = [255, 100, 0];
-  }*/
+  if (frame.hands[0]) {
+    System.rollCallback.call(this, frame.hands[0].roll());
+  }
 
   // gestures
   if (frame.gestures.length && System.ready) {
     var gesture = frame.gestures[0];
-    if (gesture.type === 'swipe' && gesture.state === 'update') {
-      if (gesture.direction[0] > 0) {
-        console.log('right');
-      } else {
-        console.log('left');
-      }
+    if (System.gestureCallbacks[gesture.type] && gesture.state === 'update') {
+      System.gestureCallbacks[gesture.type].call(this, gesture);
     }
   }
 
@@ -770,7 +779,7 @@ function Connector(opt_options) {
   Item.call(this, options);
   this.name = 'Connector';
 }
-Utils.extend(Connector, Item);
+exports.Utils.extend(Connector, Item);
 
 /**
  * Initializes an instance.
@@ -912,7 +921,7 @@ function Palm(options) {
   Item.call(this, options);
   this.name = 'Palm';
 }
-Utils.extend(Palm, Item);
+exports.Utils.extend(Palm, Item);
 
 Palm.defaultColor = function() {
   exports.System.updateItemPropsByName('Palm', {
@@ -978,7 +987,7 @@ function Finger(options) {
   this.name = 'Finger';
   this.connector = options.connector;
 }
-Utils.extend(Finger, Item);
+exports.Utils.extend(Finger, Item);
 
 Finger.defaultColor = function() {
   exports.System.updateItemPropsByName('Finger', {

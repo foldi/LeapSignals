@@ -8,7 +8,7 @@ function Palm(options) {
   Item.call(this, options);
   this.name = 'Palm';
 }
-Utils.extend(Palm, Item);
+exports.Utils.extend(Palm, Item);
 
 Palm.defaultColor = function() {
   exports.System.updateItemPropsByName('Palm', {
